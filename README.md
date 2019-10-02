@@ -1,7 +1,8 @@
 # opsi-winst
 You just have to build this Package on you OPSI-Server and deploy it to your clients.\
 Then all included Libraries will be available in your Script. \
-You find more Informations about OPSI-Libraries in the OPSI-Script Manual. \
+The Package will copy the files directory into the Local OPSI-Script Library (%ProgramFiles32Dir%\opsi.org\opsiScriptHelper\lib)\
+You find more Informations about OPSI-Libraries in the OPSI-Script Manual. 
 
 ## Integrated Libraries: ##
 

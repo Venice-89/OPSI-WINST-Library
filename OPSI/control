@@ -1,0 +1,24 @@
+[Package]
+version: 2
+depends: 
+incremental: False
+
+[Product]
+type: localboot
+id: opsi-winst-library
+name: opsi-winst-library
+description: Library for Winst / Opsi-Script
+advice: 
+version: 1.0
+priority: 90
+licenseRequired: False
+productClasses: 
+setupScript: always.opsiscript
+uninstallScript: 
+updateScript: 
+alwaysScript: always.opsiscript
+onceScript: 
+customScript: 
+userLoginScript: 
+
+[Changelog]

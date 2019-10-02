@@ -1,0 +1,73 @@
+DefFunc RemoveMSI(val $remove$ : string) : stringlist
+	DefStringList $msiidsAndDescription$
+	DefStringList $transformList$
+	DefVar $ID$
+	DefVar $description$
+	DefVar $ExitCode$
+	
+	set $msiidsAndDescription$ =	loadTextFile ("%scriptpath%\msi.conf")
+	
+	for %i% in $msiidsAndDescription$ do sub_extract_id_and_description
+	
+	[sub_extract_id_and_description]	
+	set $transformList$ = splitstring("%i%",":")
+	
+	set $Description$ = takestring(0,$transformList$)
+	set $ID$ = takestring(1,$transformList$)
+	set $transformList$ = emptylist($transformList$)
+
+	Message "remove "+$Description$
+	
+	
+	if not (GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $ID$ + "] DisplayName") = "")
+		comment "MSI id " + $ID$ + " found in registry, starting msiexec to uninstall"
+		Winbatch_uninstall_msi
+		sub_check_exitcode
+	endif
+	
+	if not (GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $ID$ + "] DisplayName") = "")
+		comment "MSI id " + $ID + " found in registry, starting msiexec to uninstall"
+		Winbatch_uninstall_msi
+		sub_check_exitcode
+	endif
+	
+	
+	[Winbatch_uninstall_msi]
+	msiexec /x $ID$ /qb-! REBOOT=ReallySuppress
+	
+	[sub_check_exitcode]
+	set $ExitCode$ = getLastExitCode
+
+	Switch $ExitCode$
+        Case "0"
+               comment "Looks good: setup program gives exitcode zero"
+               set $result$ = emptylist($result$)
+               set $result$ = addToList($result$,"All Products uninstalled")
+               set $result$ = addToList($result$,"0")
+               set $result$ = addToList($result$,"All Products uninstalled")
+        EndCase
+        case "1605"
+          		set $result$ = addToList($result$,$Description$)
+                set $result$ = addToList($result$,$ExitCode$)
+                set $result$ = addToList($result$,"ERROR_UNKNOWN_PRODUCT	1605	This action is only valid for products that are currently installed")
+		EndCase
+		case "1641"
+          		set $result$ = addToList($result$,$Description$)
+                set $result$ = addToList($result$,$ExitCode$)
+                set $result$ = addToList($result$,"ERROR_SUCCESS_REBOOT_INITIATED	1641	The installer has initiated a restart. This message is indicative of a success.")
+		EndCase
+		case "3010"
+          		set $result$ = addToList($result$,$Description$)
+                set $result$ = addToList($result$,$ExitCode$)
+                set $result$ = addToList($result$,"ERROR_SUCCESS_REBOOT_REQUIRED	3010	A restart is required to complete the install. This message is indicative of a success.")
+		EndCase
+        DefaultCase
+        		Message $exitcode$
+                set $result$ = addToList($result$,$Description$)
+                set $result$ = addToList($result$,$ExitCode$)
+                set $result$ = addToList($result$,"UNKNOWN")
+                isFatalError
+        EndCase
+     EndSwitch
+EndFunc
+	

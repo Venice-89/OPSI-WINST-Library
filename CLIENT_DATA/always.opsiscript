@@ -1,0 +1,48 @@
+[Actions]
+requiredWinstVersion >= "4.11.4.6"
+ScriptErrorMessages=off
+
+DefVar $MsiId$
+DefVar $UninstallProgram$
+DefVar $LogDir$
+DefVar $ProductId$  
+DefVar $MinimumSpace$
+DefVar $InstallDir$
+DefVar $ExitCode$
+DefVar $LicenseRequired$
+DefVar $LicenseKey$
+DefVar $LicensePool$
+DefVar $myProperty$
+
+Set $LogDir$ = "%opsiLogDir%"
+
+; ----------------------------------------------------------------
+; - Please edit the following values                             -
+; ----------------------------------------------------------------
+;$ProductId$ should be the name of the product in opsi
+; therefore please: only lower letters, no umlauts, 
+; no white space use '-' as a seperator
+Set $ProductId$       = "opsi-winst-library"
+Set $MinimumSpace$    = "10 MB"
+; the path were we find the product after the installation
+Set $InstallDir$      = "%ProgramFiles32Dir%\opsi.org\opsiScriptHelper\lib"
+Set $LicenseRequired$ = "false"
+Set $LicensePool$     = "p_" + $ProductId$
+; ----------------------------------------------------------------
+
+if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
+	LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
+	isFatalError "No Space"
+	; Stop process and set installation status to failed
+else
+	comment "Show product picture"
+	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+	
+	comment "Updating WINST Library"
+	Files_install_winst_library /32Bit
+	
+endif
+
+[Files_install_winst_library]
+; Copy library files to OpsiScriptHelper Path:
+ copy -s "%ScriptPath%\lib\*.*" "$InstallDir$"

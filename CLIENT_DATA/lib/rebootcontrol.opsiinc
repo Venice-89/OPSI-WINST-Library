@@ -1,0 +1,70 @@
+DefFunc rebootcontrol($counter$ : string, $mode$ : string) : string
+	DefVar $debug$
+	DefVar $productname$
+	set $debug$ = "false"
+	
+	if $debug$ = "True"
+		DefVar $counter$
+		DefVar $mode$
+
+		set $counter$ = "1"
+		set $mode$ = "write"
+		set $ProductName$ = "TEST"
+	else
+		message "debug off"
+		message "detecting product-ID"
+		message "%installingProdName%"
+		set $ProductName$ = "%installingProdName%"
+	endif
+	
+	DefVar $WinstRegKey$
+	DefVar $Flag$
+	
+	
+	Set $WinstRegKey$ = "HKLM\SOFTWARE\opsi.org\winst\"+$ProductName$+""
+	
+	
+	switch $mode$	
+		case "write"
+			message "Writing Reboot Counter"
+			if $counter$ = "auto"
+				Set $counter$ = getregistrystringvalueSysNative("["+$WinstRegKey$+"]RebootFlag")
+				set $counter$ = calculate($counter$+"+"+"1")
+				message = $counter$
+				Registry_SaveRebootFlag /sysnative
+			else
+				Registry_SaveRebootFlag /sysnative
+			endif
+			set $result$ = $counter$ 
+
+		endCase
+		
+		case "read"
+			message "Reading Reboot Counter"
+			Set $counter$ = getregistrystringvalueSysNative("["+$WinstRegKey$+"]RebootFlag")
+			set $result$ = $counter$ 
+		endCase
+		
+		case "delete"
+			message "Delete Reboot Counter"
+			Registry_delete_RebootCounter /sysnative
+			set $result$ = "deleted"
+		endCase
+		
+		DefaultCase
+			message "no mode definiert ERROR"
+			set $result$ = "ERROR$
+			isFatalError
+		endCase
+	EndSwitch
+			
+			
+
+[Registry_SaveRebootFlag]
+openKey [$WinstRegKey$]
+set "RebootFlag" = "$counter$"
+
+[Registry_delete_RebootCounter]
+deletekey [$WinstRegKey$]
+
+endfunc

@@ -1,0 +1,5 @@
+
+include:
+   - project: "OPSI/gitlab-ci.yml"
+     ref: master
+     file: 'OPSI-gitlab-ci.yml'

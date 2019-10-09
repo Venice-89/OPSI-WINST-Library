@@ -1,11 +1,19 @@
-DefFunc RemoveMSI(val $remove$ : string) : stringlist
+DefFunc RemoveMSI(val $filename$ : string) : stringlist
 	DefStringList $msiidsAndDescription$
 	DefStringList $transformList$
 	DefVar $ID$
 	DefVar $description$
 	DefVar $ExitCode$
+	DefVar $continueFlag$
 	
-	set $msiidsAndDescription$ =	loadTextFile ("%scriptpath%\msi.conf")
+    if fileExists("%scriptpath%\" + $filename$)
+        set $msiidsAndDescription$ =	loadTextFile ("%scriptpath%\" + $filename$)
+    else
+        comment "Use default file msi.conf"
+        set $msiidsAndDescription$ =	loadTextFile ("%scriptpath%\msi.conf")
+    endif
+	
+	
 	
 	for %i% in $msiidsAndDescription$ do sub_extract_id_and_description
 	
@@ -14,7 +22,14 @@ DefFunc RemoveMSI(val $remove$ : string) : stringlist
 	
 	set $Description$ = takestring(0,$transformList$)
 	set $ID$ = takestring(1,$transformList$)
+	if (count($transformList$) >= "3")
+	    set $continueFlag$ = takestring(2,$transformList$)
+	else
+	    set $continueFlag$ = "false"
+	endif
+	
 	set $transformList$ = emptylist($transformList$)
+	
 
 	Message "remove "+$Description$
 	
@@ -66,7 +81,11 @@ DefFunc RemoveMSI(val $remove$ : string) : stringlist
                 set $result$ = addToList($result$,$Description$)
                 set $result$ = addToList($result$,$ExitCode$)
                 set $result$ = addToList($result$,"UNKNOWN")
-                isFatalError
+                if ($continueFlag$ = "true")
+                	Message "Continueflag is set to True, we Dont't stop the Script"
+                else
+                	isfatalError
+                endif
         EndCase
      EndSwitch
 EndFunc
